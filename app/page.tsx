@@ -16,41 +16,108 @@ export default function Home() {
   const [user, setUser] = useState<any>(null)
   const [error, setError] = useState<string | null>(null)
   const [notification, setNotification] = useState('')
+  const [userData, setUserData] = useState<any>(null)
+
 
   useEffect(() => {
     if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
       const tg = window.Telegram.WebApp
       tg.ready()
 
-      const initData = tg.initData || ''
+      // const initData = tg.initData || ''
       const initDataUnsafe = tg.initDataUnsafe || {}
-
-      if (initDataUnsafe.user) {
-        fetch('/api/user', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(initDataUnsafe.user),
-        })
-          .then((res) => res.json())
-          .then((data) => {
-            if (data.error) {
-              setError(data.error)
-            } else {
-              setUser(data)
-            }
-          })
-          .catch((err) => {
-            setError('Failed to fetch user data')
-          })
-      } else {
-        setError('No user data available')
-      }
-    } else {
-      setError('This app should be opened in Telegram')
+      setUser(initDataUnsafe)
     }
   }, [])
+  
+
+  // useEffect(() => {
+  //   if (typeof window !== 'undefined' && window.Telegram?.WebApp) {
+  //     const tg = window.Telegram.WebApp
+  //     tg.ready()
+
+  //     const initData = tg.initData || ''
+  //     const initDataUnsafe = tg.initDataUnsafe || {}
+
+  //     if (initDataUnsafe.user) {
+  //       fetch('/api/user', {
+  //         method: 'POST',
+  //         headers: {
+  //           'Content-Type': 'application/json',
+  //         },
+  //         body: JSON.stringify(initDataUnsafe.user),
+  //       })
+  //         .then((res) => res.json())
+  //         .then((data) => {
+  //           if (data.error) {
+  //             setError(data.error)
+  //           } else {
+  //             setUser(data)
+  //           }
+  //         })
+  //         .catch((err) => {
+  //           setError('Failed to fetch user data')
+  //         })
+  //     } else {
+  //       setError('No user data available')
+  //     }
+  //   } else {
+  //     setError('This app should be opened in Telegram')
+  //   }
+  // }, [])
+
+  const generateUserData = async () => {
+    const userData = {
+        id: Math.floor(Math.random() * 1000000), // Generate a random ID
+        username: 'test_user',
+        first_name: 'Test',
+        last_name: 'User',
+    }
+    setUserData(userData)
+
+    try {
+        const response = await fetch('/api/user', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(userData),
+        })
+
+        if (!response.ok) {
+            throw new Error('Failed to send user data')
+        }
+
+        const result = await response.json()
+        console.log('User data sent successfully:', result)
+    } catch (error) {
+        console.error('Error sending user data:', error)
+    }
+}
+
+const saveTgUserData = async () => {
+
+  try {
+    const response = await fetch('/api/user', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(user),
+    })
+
+    if (!response.ok) {
+        throw new Error('Failed to send user data')
+    }
+
+    const result = await response.json()
+    console.log('User data sent successfully:', result)
+} catch (error) {
+    console.error('Error sending user data:', error)
+}
+}
+
+
 
   const handleIncreasePoints = async () => {
     if (!user) return
@@ -76,16 +143,19 @@ export default function Home() {
     }
   }
 
-  if (error) {
-    return <div className="container mx-auto p-4 text-red-500">{error}</div>
-  }
+  // if (error) {
+  //   return <div className="container mx-auto p-4 text-red-500">{error}</div>
+  // }
 
-  if (!user) return <div className="container mx-auto p-4">Loading...</div>
+  // if (!user) return <div className="container mx-auto p-4">Loading...</div>
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Welcome to db, {user.firstName}!</h1>
-      <p>Your current points: {user.points}</p>
+      <h1 className="text-2xl font-bold mb-4">Welcome to db, {user?.firstName || 'User'}!</h1>
+      <div>
+        <p>{JSON.stringify(user, null, 2)}</p>
+      </div>
+      {/* {user.points && <p>Your current points: {user.points}</p>} */}
       <button
         onClick={handleIncreasePoints}
         className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-4"
@@ -97,6 +167,27 @@ export default function Home() {
           {notification}
         </div>
       )}
+      <div>
+      <button 
+          onClick={generateUserData}
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mt-4"
+          >Generate and Send userData
+      </button>
+          {userData && (
+              <div>
+                  <h2>Generated User Data:</h2>
+                  <pre>{JSON.stringify(userData, null, 2)}</pre>
+              </div>
+          )}
+      </div>
+      <div>
+        <button 
+          onClick={saveTgUserData}
+          className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mt-4"
+          >Send tg userData
+      </button>
+      </div>
+
     </div>
   )
 }
