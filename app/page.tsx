@@ -84,7 +84,7 @@ export default function Home() {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Welcome, {user.firstName}!</h1>
+      <h1 className="text-2xl font-bold mb-4">Welcome to db, {user.firstName}!</h1>
       <p>Your current points: {user.points}</p>
       <button
         onClick={handleIncreasePoints}
